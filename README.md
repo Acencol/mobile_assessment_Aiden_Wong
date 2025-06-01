@@ -4,6 +4,10 @@ Aiden Wong
 This repository contains the deliverable project for the EcoRoute Mobile App Test sample project for the Mobile App Developer Student Researcher position. The following project was tested on Expo Go.
 
 
+
+https://github.com/user-attachments/assets/240dd8a2-8dd4-496c-9af1-3c297f8c40ce
+
+
 ## Quick Start
 
 ### Prerequisites
