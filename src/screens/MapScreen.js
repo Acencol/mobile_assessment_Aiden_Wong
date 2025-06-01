@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
-  Dimensions
+  Dimensions,
+  ActivityIndicator
 } from 'react-native';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import { useRoute } from '../context/RouteContext';
 
 const { width } = Dimensions.get('window');
 
@@ -32,96 +34,8 @@ const getModeIcon = (mode) => {
   return icons[mode] || '🚗';
 };
 
-// Simple route visualization component
-const RouteVisualization = ({ mode }) => {
-  const routeColor = getRouteColor(mode);
-  
-  return (
-    <View style={styles.mapContainer}>
-      <View style={styles.mapHeader}>
-        <Text style={styles.mapTitle}>Route Preview</Text>
-        <Text style={styles.mapSubtitle}>Visual representation of your {mode} route</Text>
-      </View>
-      
-      {/* Simple route diagram */}
-      <View style={styles.routeDiagram}>
-        {/* Start point */}
-        <View style={styles.startPoint}>
-          <Text style={styles.pointEmoji}>🟢</Text>
-          <Text style={styles.pointLabel}>Start</Text>
-        </View>
-        
-        {/* Route line with waypoints */}
-        <View style={styles.routeLineContainer}>
-          <View style={[styles.routeLine, { backgroundColor: routeColor }]} />
-          
-          {/* Waypoints based on mode */}
-          {mode === 'transit' && (
-            <>
-              <View style={[styles.waypoint, { top: '25%' }]}>
-                <Text style={styles.waypointEmoji}>🚏</Text>
-              </View>
-              <View style={[styles.waypoint, { top: '75%' }]}>
-                <Text style={styles.waypointEmoji}>🚏</Text>
-              </View>
-            </>
-          )}
-          
-          {mode === 'bicycling' && (
-            <View style={[styles.waypoint, { top: '50%' }]}>
-              <Text style={styles.waypointEmoji}>🚴</Text>
-            </View>
-          )}
-          
-          {mode === 'walking' && (
-            <>
-              <View style={[styles.waypoint, { top: '33%' }]}>
-                <Text style={styles.waypointEmoji}>🚶</Text>
-              </View>
-              <View style={[styles.waypoint, { top: '66%' }]}>
-                <Text style={styles.waypointEmoji}>🚶</Text>
-              </View>
-            </>
-          )}
-        </View>
-        
-        {/* End point */}
-        <View style={styles.endPoint}>
-          <Text style={styles.pointEmoji}>🔴</Text>
-          <Text style={styles.pointLabel}>Destination</Text>
-        </View>
-      </View>
-      
-      {/* Route characteristics */}
-      <View style={styles.routeCharacteristics}>
-        <Text style={styles.characteristicsTitle}>Route Characteristics</Text>
-        <View style={styles.characteristicItem}>
-          <Text style={styles.characteristicLabel}>Transport Mode:</Text>
-          <Text style={styles.characteristicValue}>{getModeIcon(mode)} {mode.toUpperCase()}</Text>
-        </View>
-        <View style={styles.characteristicItem}>
-          <Text style={styles.characteristicLabel}>Route Type:</Text>
-          <Text style={styles.characteristicValue}>
-            {mode === 'driving' && 'Direct roads and highways'}
-            {mode === 'bicycling' && 'Bike lanes and paths'}
-            {mode === 'transit' && 'Public transportation routes'}
-            {mode === 'walking' && 'Pedestrian walkways'}
-          </Text>
-        </View>
-        <View style={styles.characteristicItem}>
-          <Text style={styles.characteristicLabel}>Route Color:</Text>
-          <View style={styles.colorIndicator}>
-            <View style={[styles.colorSwatch, { backgroundColor: routeColor }]} />
-            <Text style={styles.characteristicValue}>{routeColor}</Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-};
-
 export default function MapScreen({ route, navigation }) {
-  // Get route data from navigation params
+  const { state } = useRoute();
   const routeData = route?.params?.route || {
     mode: 'driving',
     distance_km: 12.3,
@@ -130,12 +44,27 @@ export default function MapScreen({ route, navigation }) {
     score: 240.4
   };
 
+  // For demo purposes, we'll create mock coordinates based on a center point
+  const [region, setRegion] = useState({
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
+
+  // Create mock route coordinates
+  const routeCoordinates = [
+    { latitude: region.latitude - 0.01, longitude: region.longitude - 0.01 },  // Start
+    { latitude: region.latitude - 0.005, longitude: region.longitude },        // Waypoint
+    { latitude: region.latitude + 0.01, longitude: region.longitude + 0.01 }   // End
+  ];
+
   const handleBackToList = () => {
     navigation.goBack();
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       {/* Route Information Header */}
       <View style={styles.routeInfo}>
         <View style={styles.routeHeader}>
@@ -152,8 +81,44 @@ export default function MapScreen({ route, navigation }) {
         </View>
       </View>
 
-      {/* Route Visualization */}
-      <RouteVisualization mode={routeData.mode} />
+      {/* Map View */}
+      <View style={styles.mapContainer}>
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          style={styles.map}
+          initialRegion={region}
+          onRegionChangeComplete={setRegion}
+        >
+          {/* Start Marker */}
+          <Marker
+            coordinate={routeCoordinates[0]}
+            title="Start"
+            description={state.fromAddress || "Starting Point"}
+          >
+            <View style={styles.markerContainer}>
+              <Text style={styles.markerText}>🟢</Text>
+            </View>
+          </Marker>
+
+          {/* End Marker */}
+          <Marker
+            coordinate={routeCoordinates[routeCoordinates.length - 1]}
+            title="Destination"
+            description={state.toAddress || "Destination Point"}
+          >
+            <View style={styles.markerContainer}>
+              <Text style={styles.markerText}>🔴</Text>
+            </View>
+          </Marker>
+
+          {/* Route Polyline */}
+          <Polyline
+            coordinates={routeCoordinates}
+            strokeColor={getRouteColor(routeData.mode)}
+            strokeWidth={3}
+          />
+        </MapView>
+      </View>
 
       {/* Back Button */}
       <TouchableOpacity
@@ -163,15 +128,14 @@ export default function MapScreen({ route, navigation }) {
         <Text style={styles.backButtonText}>← Back to Routes</Text>
       </TouchableOpacity>
       
-      {/* Note about real implementation */}
+      {/* Note about mock implementation */}
       <View style={styles.noteContainer}>
-        <Text style={styles.noteTitle}>📝 Development Note</Text>
+        <Text style={styles.noteTitle}>📝 Note</Text>
         <Text style={styles.noteText}>
-          In a production app, this would show an interactive map with real GPS coordinates, 
-          turn-by-turn directions, and live traffic data using services like Google Maps or Mapbox.
+          This is a demo route visualization. In production, real GPS coordinates and route data would be used.
         </Text>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -226,116 +190,26 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   mapContainer: {
-    backgroundColor: 'white',
-    margin: 10,
-    padding: 20,
+    flex: 1,
+    overflow: 'hidden',
     borderRadius: 10,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    margin: 10,
   },
-  mapHeader: {
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  markerContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
   },
-  mapTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  mapSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
-  },
-  routeDiagram: {
-    height: 300,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginVertical: 20,
-  },
-  startPoint: {
-    alignItems: 'center',
-  },
-  endPoint: {
-    alignItems: 'center',
-  },
-  pointEmoji: {
+  markerText: {
     fontSize: 24,
   },
-  pointLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 5,
-    fontWeight: 'bold',
-  },
-  routeLineContainer: {
-    flex: 1,
-    width: 4,
-    position: 'relative',
-    marginVertical: 10,
-  },
-  routeLine: {
-    flex: 1,
-    width: 4,
-    borderRadius: 2,
-  },
-  waypoint: {
-    position: 'absolute',
-    left: -8,
-    transform: [{ translateX: -8 }],
-  },
-  waypointEmoji: {
-    fontSize: 16,
-  },
-  routeCharacteristics: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-  },
-  characteristicsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  characteristicItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-    alignItems: 'center',
-  },
-  characteristicLabel: {
-    fontSize: 14,
-    color: '#666',
-    flex: 1,
-  },
-  characteristicValue: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '500',
-    flex: 1,
-    textAlign: 'right',
-  },
-  colorIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  colorSwatch: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    marginRight: 8,
-  },
   backButton: {
-    backgroundColor: '#007AFF',
-    margin: 15,
+    margin: 10,
     padding: 15,
+    backgroundColor: '#007AFF',
     borderRadius: 8,
     alignItems: 'center',
   },
@@ -345,22 +219,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   noteContainer: {
-    backgroundColor: '#fff3cd',
-    margin: 15,
+    margin: 10,
     padding: 15,
+    backgroundColor: '#FFF9C4',
     borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: '#ffc107',
   },
   noteTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#856404',
     marginBottom: 5,
   },
   noteText: {
-    fontSize: 12,
-    color: '#856404',
-    lineHeight: 18,
-  },
+    fontSize: 14,
+    color: '#666',
+  }
 });
