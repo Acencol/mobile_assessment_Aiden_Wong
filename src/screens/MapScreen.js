@@ -1,3 +1,9 @@
+/**
+ * Map Screen component for the EcoRoute application
+ * Displays an interactive map view of the selected route
+ * Shows route details, markers for start/end points, and route path
+ * Uses mock coordinates for demonstration purposes
+ */
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -10,9 +16,17 @@ import {
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useRoute } from '../context/RouteContext';
 
+/**
+ * Get window dimensions for responsive layout
+ * @constant {number} width - Screen width for calculations
+ */
 const { width } = Dimensions.get('window');
 
-// Get route color based on transport mode
+/**
+ * Determines the route line color based on transport mode
+ * @param {string} mode - Transport mode identifier
+ * @returns {string} Hex color code for the route line
+ */
 const getRouteColor = (mode) => {
   const colors = {
     driving: '#FF6B6B',    // Red for driving
@@ -23,7 +37,11 @@ const getRouteColor = (mode) => {
   return colors[mode] || '#007AFF';
 };
 
-// Get mode icon
+/**
+ * Maps transport modes to their corresponding emoji icons
+ * @param {string} mode - Transport mode identifier
+ * @returns {string} Emoji icon representing the transport mode
+ */
 const getModeIcon = (mode) => {
   const icons = {
     driving: '🚗',
@@ -34,8 +52,20 @@ const getModeIcon = (mode) => {
   return icons[mode] || '🚗';
 };
 
+/**
+ * Map screen component showing route visualization
+ * @param {Object} props - Component props
+ * @param {Object} props.route - Navigation route object containing selected route data
+ * @param {Object} props.navigation - Navigation object for screen transitions
+ * @returns {JSX.Element} Map screen UI with route visualization
+ */
 export default function MapScreen({ route, navigation }) {
   const { state } = useRoute();
+  
+  /**
+   * Route data with fallback default values
+   * @constant {Object} routeData - Selected route information
+   */
   const routeData = route?.params?.route || {
     mode: 'driving',
     distance_km: 12.3,
@@ -44,7 +74,10 @@ export default function MapScreen({ route, navigation }) {
     score: 240.4
   };
 
-  // For demo purposes, we'll create mock coordinates based on a center point
+  /**
+   * Mock map region state for demo purposes
+   * Centers on San Francisco coordinates
+   */
   const [region, setRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
@@ -52,20 +85,27 @@ export default function MapScreen({ route, navigation }) {
     longitudeDelta: 0.0421,
   });
 
-  // Create mock route coordinates
+  /**
+   * Mock route coordinates for demonstration
+   * Creates a simple path with start, waypoint, and end
+   * @constant {Array<Object>} routeCoordinates
+   */
   const routeCoordinates = [
     { latitude: region.latitude - 0.01, longitude: region.longitude - 0.01 },  // Start
     { latitude: region.latitude - 0.005, longitude: region.longitude },        // Waypoint
     { latitude: region.latitude + 0.01, longitude: region.longitude + 0.01 }   // End
   ];
 
+  /**
+   * Handles navigation back to results screen
+   */
   const handleBackToList = () => {
     navigation.goBack();
   };
 
   return (
     <View style={styles.container}>
-      {/* Route Information Header */}
+      {/* Route summary card */}
       <View style={styles.routeInfo}>
         <View style={styles.routeHeader}>
           <Text style={styles.modeIcon}>{getModeIcon(routeData.mode)}</Text>
@@ -81,7 +121,7 @@ export default function MapScreen({ route, navigation }) {
         </View>
       </View>
 
-      {/* Map View */}
+      {/* Interactive map component */}
       <View style={styles.mapContainer}>
         <MapView
           provider={PROVIDER_GOOGLE}
@@ -89,7 +129,7 @@ export default function MapScreen({ route, navigation }) {
           initialRegion={region}
           onRegionChangeComplete={setRegion}
         >
-          {/* Start Marker */}
+          {/* Start location marker */}
           <Marker
             coordinate={routeCoordinates[0]}
             title="Start"
@@ -100,7 +140,7 @@ export default function MapScreen({ route, navigation }) {
             </View>
           </Marker>
 
-          {/* End Marker */}
+          {/* Destination marker */}
           <Marker
             coordinate={routeCoordinates[routeCoordinates.length - 1]}
             title="Destination"
@@ -111,7 +151,7 @@ export default function MapScreen({ route, navigation }) {
             </View>
           </Marker>
 
-          {/* Route Polyline */}
+          {/* Route path visualization */}
           <Polyline
             coordinates={routeCoordinates}
             strokeColor={getRouteColor(routeData.mode)}
@@ -120,7 +160,7 @@ export default function MapScreen({ route, navigation }) {
         </MapView>
       </View>
 
-      {/* Back Button */}
+      {/* Navigation back button */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={handleBackToList}
@@ -131,6 +171,18 @@ export default function MapScreen({ route, navigation }) {
   );
 }
 
+/**
+ * Component styles
+ * @constant
+ * @description
+ * - container: Main screen layout
+ * - routeInfo: Route summary card styling
+ * - routeHeader: Mode and score section layout
+ * - mapContainer: Map view container with border radius
+ * - markerContainer: Custom marker styling
+ * - backButton: Navigation button styling
+ * - Includes shadow properties for elevation effects
+ */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

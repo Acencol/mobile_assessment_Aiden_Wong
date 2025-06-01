@@ -1,3 +1,8 @@
+/**
+ * Results Screen component for the EcoRoute application
+ * Displays sorted route options with their environmental impact metrics
+ * Provides navigation to detailed map view for each route
+ */
 import React from 'react';
 import {
   View,
@@ -8,6 +13,11 @@ import {
 } from 'react-native';
 import { useRoute } from '../context/RouteContext';
 
+/**
+ * Maps transport modes to their corresponding emoji icons
+ * @param {string} mode - Transport mode identifier
+ * @returns {string} Emoji icon representing the transport mode
+ */
 const getModeIcon = (mode) => {
   const icons = {
     driving: '🚗',
@@ -18,8 +28,16 @@ const getModeIcon = (mode) => {
   return icons[mode] || '🚗';
 };
 
+/**
+ * Route item component displaying individual route options
+ * @param {Object} props - Component props
+ * @param {Object} props.route - Route data object
+ * @param {Function} props.onPress - Handler for route selection
+ * @returns {JSX.Element} Route card UI with mode, metrics, and score
+ */
 const RouteItem = ({ route, onPress }) => (
   <TouchableOpacity style={styles.routeItem} onPress={onPress}>
+    {/* Mode identifier and score section */}
     <View style={styles.routeHeader}>
       <Text style={styles.modeIcon}>{getModeIcon(route.mode)}</Text>
       <Text style={styles.modeName}>{route.mode.toUpperCase()}</Text>
@@ -28,6 +46,7 @@ const RouteItem = ({ route, onPress }) => (
       </View>
     </View>
     
+    {/* Route metrics display */}
     <View style={styles.routeDetails}>
       <Text style={styles.detailText}>Distance: {route.distance_km} km</Text>
       <Text style={styles.detailText}>Time: {route.time_min} min</Text>
@@ -36,21 +55,32 @@ const RouteItem = ({ route, onPress }) => (
   </TouchableOpacity>
 );
 
+/**
+ * Results screen component showing all available routes
+ * @param {Object} props - Component props
+ * @param {Object} props.navigation - Navigation object for screen transitions
+ * @returns {JSX.Element} Results screen UI with list of route options
+ */
 export default function ResultsScreen({ navigation }) {
   const { state } = useRoute();
 
+  /**
+   * Handles navigation to map view for selected route
+   * @param {Object} route - Selected route data
+   */
   const handleRoutePress = (route) => {
-    // Navigate to map with route data
     navigation.navigate('Map', { route });
   };
 
   return (
     <View style={styles.container}>
+      {/* Screen header with route addresses */}
       <Text style={styles.title}>Best Route Options</Text>
       <Text style={styles.subtitle}>
         From: {state.fromAddress} → To: {state.toAddress}
       </Text>
       
+      {/* Routes list with selection handling */}
       <FlatList
         data={state.routes}
         keyExtractor={(item, index) => index.toString()}
@@ -63,6 +93,19 @@ export default function ResultsScreen({ navigation }) {
   );
 }
 
+/**
+ * Component styles
+ * @constant
+ * @description
+ * - container: Main screen layout
+ * - title/subtitle: Header text styling
+ * - routeItem: Card container for route options
+ * - routeHeader: Mode and score section layout
+ * - modeIcon/modeName: Transport mode identifier styling
+ * - scoreBadge: Route score display styling
+ * - routeDetails: Metrics section layout
+ * - Shadow properties for card elevation effect
+ */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
