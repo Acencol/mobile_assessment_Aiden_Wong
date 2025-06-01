@@ -10,7 +10,7 @@ This repository contains the deliverable project for the EcoRoute Mobile App Tes
 - Node.js (v14 or higher)
 - npm or yarn
 - iOS Simulator (for Mac users) or Android Studio (for Android development)
-- Expo Go app on your physical device
+- Expo Go app on physical device
 
 ### Installation
 1 - Clone the repository:
