@@ -127,14 +127,6 @@ export default function MapScreen({ route, navigation }) {
       >
         <Text style={styles.backButtonText}>← Back to Routes</Text>
       </TouchableOpacity>
-      
-      {/* Note about mock implementation */}
-      <View style={styles.noteContainer}>
-        <Text style={styles.noteTitle}>📝 Note</Text>
-        <Text style={styles.noteText}>
-          This is a demo route visualization. In production, real GPS coordinates and route data would be used.
-        </Text>
-      </View>
     </View>
   );
 }
@@ -217,20 +209,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  noteContainer: {
-    margin: 10,
-    padding: 15,
-    backgroundColor: '#FFF9C4',
-    borderRadius: 8,
-  },
-  noteTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  noteText: {
-    fontSize: 14,
-    color: '#666',
   }
 });
